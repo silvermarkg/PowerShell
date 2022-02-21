@@ -68,7 +68,7 @@ function Get-LogPath {
 #>
 
     #-- Parameters --#
-    [cmdletbinding(SupportsShouldProcess=$true,ConfirmImpact="None")]
+    [cmdletbinding()]
     param ()
 
     # return log path
@@ -82,7 +82,7 @@ function Set-LogPath {
 #>
 
     #-- Parameters --#
-    [cmdletbinding(SupportsShouldProcess=$true,ConfirmImpact="None")]
+    [cmdletbinding()]
     param (
         [Parameter(Mandatory=$true, Position=0, HelpMessage="Specifies the full path of the log file.")]
         [ValidateNotNullOrEmpty()]
@@ -138,7 +138,9 @@ function Write-LogEntry {
 
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$true,Position=0,HelpMessage="Message to write to the log file")]
+        [Parameter(Mandatory=$true,Position=0,ParameterSetName="Basic")]
+        [Parameter(Mandatory=$true,Position=0,ParameterSetName="BasicDateTime")]
+        [Parameter(Mandatory=$true,Position=0,ParameterSetName="CMTraceFormat")]
         [ValidateNotNullOrEmpty()]
         [String]$Message,
 
@@ -154,7 +156,7 @@ function Write-LogEntry {
         [Parameter(ParameterSetName="CMTraceFormat",HelpMessage="Indicates to use cmtrace compatible logging")]
         [Switch]$CMTraceFormat,
 
-        [Parameter(ParameterSetName="BasicFormat",HelpMessage="Indicated to add datetime to basic log entry")]
+        [Parameter(ParameterSetName="BasicDateTime",HelpMessage="Indicated to add datetime to basic log entry")]
         [Switch]$AddDateTime
     )
 
