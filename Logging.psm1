@@ -142,14 +142,7 @@ function Write-LogEntry {
 
         [Parameter(Mandatory=$true,Position=2,HelpMessage="The full path of the log file that the entry will written to")]
         [ValidateNotNullOrEmpty()]
-        [ValidateScript({
-            if (-Not (Test-Path -Path $_.Substring(0, $_.LastIndexOf("\")) -PathType Container)) {
-                throw "Log file parent folder does not exist!"
-            }
-            if (-Not (Test-Path -Path $_ -PathType Leaf -IsValid)) {
-                throw "Invalid log file path!"
-            }
-        })]
+        [ValidateScript({(Test-Path -Path $_.Substring(0, $_.LastIndexOf("\")) -PathType Container) -and (Test-Path -Path $_ -PathType Leaf -IsValid)})]
         [String]$Path = $Script:LogPath,
 
         [Parameter(ParameterSetName="CMTraceFormat",HelpMessage="Indicates to use cmtrace compatible logging")]
