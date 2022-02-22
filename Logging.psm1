@@ -111,7 +111,7 @@ function Write-LogEntry {
 		.PARAMETER LogPath
 		The path to the log file. Recommended to use Set-LogPath to set the path.
 
-		.PARAMETER AddDateTime
+		#.PARAMETER AddDateTime (currently not supported)
 		Adds a datetime stamp to each entry in the format YYYY-MM-DD HH:mm:ss.fff
 
 		.EXAMPLE
@@ -120,13 +120,6 @@ function Write-LogEntry {
         Description
         -----------
         Writes a basic log entry
-
-		.EXAMPLE
-        Write-LogEntry -Message "Searching for file" -Severity Information -LogPath C:\MyLog.log -AddDateTime 
-
-        Description
-        -----------
-        Writes a basic log entry with a datetime stamp
 
    		.EXAMPLE
         Write-LogEntry -Message "Searching for file" -Severity Warning -LogPath C:\MyLog.log -CMTraceFormat 
@@ -138,26 +131,26 @@ function Write-LogEntry {
 
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$true,Position=0,ParameterSetName="Basic")]
-        [Parameter(Mandatory=$true,Position=0,ParameterSetName="BasicDateTime")]
-        [Parameter(Mandatory=$true,Position=0,ParameterSetName="CMTraceFormat")]
+        [Parameter(Mandatory=$true,Position=0)]
         [ValidateNotNullOrEmpty()]
         [String]$Message,
 
-        [Parameter(Mandatory=$false,HelpMessage="Severity for the log entry (Information, Warning or Error)")]
+        [Parameter(Mandatory=$false,Position=1,HelpMessage="Severity for the log entry (Information, Warning or Error)")]
         [ValidateNotNullOrEmpty()]
         [ValidateSet("Information", "Warning", "Error")]
         [String]$Severity = "Information",
 
-        [Parameter(Mandatory=$false,HelpMessage="The full path of the log file that the entry will written to")]
+        [Parameter(Mandatory=$true,Position=2,HelpMessage="The full path of the log file that the entry will written to")]
         [ValidateNotNullOrEmpty()]
         [String]$Path = $Script:LogPath,
 
         [Parameter(ParameterSetName="CMTraceFormat",HelpMessage="Indicates to use cmtrace compatible logging")]
-        [Switch]$CMTraceFormat,
+        [Switch]$CMTraceFormat
 
+        <# Currently not supported - basic log entries will include datetime stamp
         [Parameter(ParameterSetName="BasicDateTime",HelpMessage="Indicated to add datetime to basic log entry")]
         [Switch]$AddDateTime
+        #>
     )
 
     # Set log path
@@ -194,12 +187,13 @@ function Write-LogEntry {
     }
     else {
         # Construct basic log entry
-        if ($AddDateTime) {
+        # AddDateTime parameter currently not supported
+        #if ($AddDateTime) {
             $LogText = "[{0} {1}] {2}: {3}" -f $Date, $Time, $Severity, $Message
-        }
-        else {
-            $LogText = "{0}: {1}" -f $Severity, $Message
-        }
+        #}
+        #else {
+        #    $LogText = "{0}: {1}" -f $Severity, $Message
+        #}
     }
 
     # Add value to log file
