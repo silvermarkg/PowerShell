@@ -2,14 +2,15 @@
   .NOTES
   Author: Mark Goodman
   Version 1.00
-  Date: dd-MMM-yyyy
+  Date: 23-Mar-2022
 
   Release Notes
   -------------
+  Insipration and code from https://jdhitsolutions.com/blog/powershell/7931/extracting-icons-with-powershell/
 
   Update History
   --------------
-  1.00 (dd-MMM-yyyy) - Initial script
+  1.00 (23-Mar-2022) - Initial script
 
   License
   -------
@@ -31,10 +32,7 @@
   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
   .SYNOPSIS
-  <Short description>
-
-  .DESCRIPTION
-  <Long description>
+  Extracts icon from executable and saves as PNG file
 
   .PARAMETER ParamName
   <parameter description>
@@ -51,13 +49,16 @@
 [Cmdletbinding(SupportsShouldProcess=$true,ConfirmImpact='Low')]
 param(
   # Mandatory parameter
-  [Parameter(Mandatory=$true,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$True,HelpMessage="",Position=0)]
+  [Parameter(Mandatory=$true,HelpMessage="Specify the path to the file containing the icon",Position=0)]
   [ValidateNotNullOrEmpty()]
-  [String]$Name,
+  [ValidateScript({Test-Path -Path $_ -PathType Leaf})]
+  [String]$Path,
 
   # Non-mandatory Parameter
-  [Parameter(Mandatory=$false,HelpMessage="")]
-  [String]$Name2
+  [Parameter(Mandatory=$false,HelpMessage="Specifyc the folder to save the icon")]
+  [ValidateNotNullOrEmpty()]
+  [ValidateScript({Test-Path -Path $_ -PathType Container})]
+  [String]$Destination = "."
 )
 #endregion - Parameters
 
@@ -68,50 +69,6 @@ Set-StrictMode -Version Latest
 #endregion - Script Environment
 
 #region - Functions
-function Get-Something {
-  <#
-  .SYNOPSIS
-  Describe the function here
-  .DESCRIPTION
-  Describe the function in more detail
-  .EXAMPLE
-  Give an example of how to use it
-  .EXAMPLE
-  Give another example of how to use it
-  .PARAMETER computername
-  The computer name to query. Just one.
-  .PARAMETER logname
-  The name of a file to write failed computer names to. Defaults to errors.txt.
-  #>
-
-  [CmdletBinding(SupportsShouldProcess=$true,ConfirmImpact='Low')]
-  param
-  (
-    [Parameter(Mandatory=$true,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="")]
-      [ValidateNotNullOrEmpty()]
-      [String[]]$Name
-  )
-
-  begin
-  {
-    #-- Begin code only runs once --#
-  }
-
-  process
-  {
-    #-- Process block --#
-    write-verbose "Beginning process loop"
-
-    foreach ($Item in $Name) {
-      Write-Verbose "Processing $Item"
-
-      # Following if statement handles the -WhatIf and -Confirm switches
-      if ($PSCmdlet.ShouldProcess($Item)) {
-        # use $Item here
-      }
-    }
-  }
-}
 #endregion - Functions
 
 #region - Main code
@@ -120,5 +77,14 @@ function Get-Something {
 # PS v4+ = Use $PSScriptRoot for script path
 
 #-- Main code --#
-
+Write-Verbose -Message "Extracting icon from $($Path)"
+$iconFile = Join-Path -Path (Convert-Path -Path $Destination) -ChildPath "$((Get-Item -Path $Path).BaseName).png"
+$ico = [System.Drawing.icon]::ExtractAssociatedIcon($Path)
+if ($ico) {
+  # WhatIf example
+  if ($PSCmdlet.ShouldProcess($iconFile, "Extract icon")) {
+    Write-Verbose -Message "Saving extracted icon to $($iconFile)"
+    $ico.ToBitmap().Save($iconFile, "png")
+  }
+}
 #endregion - Main code
