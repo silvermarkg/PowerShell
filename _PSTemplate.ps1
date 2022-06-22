@@ -1,6 +1,7 @@
 <#
   .NOTES
   Author: Mark Goodman
+  Twitter: @silvermakrg
   Version 1.00
   Date: dd-MMM-yyyy
 
@@ -15,7 +16,7 @@
   -------
   MIT LICENSE
   
-  Copyright (c) 2022 Mark Goodman (silvermarkg)
+  Copyright (c) 2022 Mark Goodman (@silvermarkg)
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation 
   files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, 
