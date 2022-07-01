@@ -1,21 +1,26 @@
 <#
   .SYNOPSIS
-  Determines the device type (Laptop, Desktop or VDI) from the ChassisTypes property of the Win32_SystemEnclosure class
-  This is based on the code in ZTIGather.wsf from the Microsoft Deployment Toolkit.
-  This is intended to be dot-sorced before running the Get-DeviceType function
+  Determines the device type (Laptop, Desktop or VDI) from the ChassisTypes property of the Win32_SystemEnclosure class.
+  If a virtual machines, it will check if it has been marked as laptop for testing purposed.
 
+  .DESCRIPTION
+  Determines the device type (Laptop, Desktop or VDI) from the ChassisTypes property of the Win32_SystemEnclosure class.
+  This is based on code from ZTIGather.wsf from the Microsoft Deployment Toolkit.
+  If a virtual machines, it will check if it has been marked as laptop for testing purposed. To mark a virtual machine
+  as a laptop set the registry value HKLM\Software\Testing\IsLaptop = 1 (Dword) before running this script.
+  
   .NOTES
   Author: Mark Goodman
   Twitter: @silvermakrg
   Version 1.00
-  Date: 30-Jun-2022
+  Date: 01-Jul-2022
 
   Release Notes
   -------------
 
   Update History
   --------------
-  1.00 (30-Jun-2022) - Initial script
+  1.00 | 01-Jul-2022 | Initial script
 
   License
   -------
@@ -49,34 +54,34 @@ Set-StrictMode -Version Latest
 #endregion - Script Environment
 
 #region - Functions
-function Get-DeviceType {
-  <#
-    .SYNOPSIS
-    Determines the device type (Laptop or Desktop) from the ChassisTypes property of the Win32_SystemEnclosure class
-    This is based on the code in ZTIGather.wsf from the Microsoft Deployment Toolkit
-  #>
-
-  [CmdletBinding(SupportsShouldProcess=$true,ConfirmImpact='Low')]
-  param()
-
-  #-- Define variables --#
-  $DeviceType = $null
-  
-  # Determine device type from Win32_SystemEnclosure ChassisTypes
-  $SystemEnclosureInstances = Get-CimInstance -ClassName Win32_SystemEnclosure
-  foreach ($Instance in $SystemEnclosureInstances) {
-    if ($Instance.ChassisTypes[0] -in "8", "9", "10", "11", "12", "14", "18", "21", "30", "31", "32") {
-      $DeviceType = "Laptop"
-    }
-    elseif ($Instance.ChassisTypes[0] -in "3", "4", "5", "6", "7", "15", "16") {
-      $DeviceType = "Desktop"
-    }
-    elseif ($Instance.ChassisTypes[0] -eq "1") {
-      $DeviceType = "VDI"
-    }
-  }
-
-  # Return result
-  return $DeviceType
-}
 #endregion - Functions
+
+#region Script variables
+$DeviceType = $null
+$VMLaptopRegKey = "HKLM:\SOFTWARE\Testing"
+  
+# Determine device type from Win32_SystemEnclosure ChassisTypes
+$SystemEnclosureInstances = Get-CimInstance -ClassName Win32_SystemEnclosure
+foreach ($Instance in $SystemEnclosureInstances) {
+  if ($Instance.ChassisTypes[0] -in "8", "9", "10", "11", "12", "14", "18", "21", "30", "31", "32") {
+    $DeviceType = "IsLaptop"
+  }
+  elseif ($Instance.ChassisTypes[0] -in "3", "4", "5", "6", "7", "15", "16") {
+    $DeviceType = "IsDesktop"
+  }
+  elseif ($Instance.ChassisTypes[0] -eq "1") {
+    $DeviceType = "IsVDI"
+  }
+}
+
+# Determine if VM and marked as laptop for testing purposes
+$Model = (Get-CimInstance -ClassName Win32_ComputerSystem).Model
+if ($Model -in "Virtual Machine", "VMware Virtual Platform", "VMware7,1", "VirtualBox") {
+  # Virtual machine detected, check if marked as laptop for testing purposes
+  if ((Get-ItemProperty -Path $VMLaptopRegKey -Name IsLaptop -ErrorAction SilentlyContinue).IsLaptop) {
+    $DeviceType = "IsLaptop"
+  }
+}
+
+# Return result
+return $DeviceType
