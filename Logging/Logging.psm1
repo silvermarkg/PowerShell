@@ -1,14 +1,15 @@
 <#
     Script:  Logging.psm1
-    Date:    21-Feb-2022
+    Date:    21-Jun-2022
     Author:  Mark Goodman
-    Version: 1.10
+    Version: 1.20
 
     This script is provided "AS IS" with no warranties, confers no rights and 
     is not supported by the authors.
 
     Update history
     --------------
+    1.20 - Fixed issues when not specifying the Path parameter
     1.10 - Added additional options and validation
     1.00 - Initial version
 
@@ -24,7 +25,7 @@
     .EXAMPLE
     Import-Module -Name Logging.ps1
     Set-LogPath -Path "C:\Windows\Temp\MyScript.log"
-    Write-LogEntry -Message "Script started" -
+    Write-LogEntry -Message "Script started"
 
     Description
     -----------
@@ -42,10 +43,12 @@
     .EXAMPLE
     Import-Module -Name Logging.ps1
     Write-LogEntry -Message "Script started" -Path "C:\Windows\Temp\MyScript.log"
+    Write-LogEntry -Message "Script ended"
 
     Description
     -----------
-    The first line imports the module. The next line wrties an entry (in basic format) to the C:\Windows\Temp\MyScript.log log file.
+    The first line imports the module. The next line wrties an entry (in basic format) to the C:\Windows\Temp\MyScript.log file.
+    The third line writes an entry to the log file. No Path parameter is required as the previous call has saved the log file path.
 #>
 
 #-- Script Environment --#
@@ -55,9 +58,7 @@ Set-StrictMode -Version Latest
 #-- Module variables --#
 # PS v2+ = $scriptDir = split-path -path $MyInvocation.MyCommand.Path -parent
 # PS v4+ = User $PSScriptRoot for script path
-$LogDirectory = $PSScriptRoot
-$LogFile = $MyInvocation.ScriptName -replace '\.[^.]+$', '.log'
-$LogPath = Join-Path -Path $LogDirectory -ChildPath $LogFile
+$LogPath = $null
 
 #-- Functions  --#
 function Get-LogPath {
@@ -140,7 +141,7 @@ function Write-LogEntry {
         [ValidateSet("Information", "Warning", "Error")]
         [String]$Severity = "Information",
 
-        [Parameter(Mandatory=$true,Position=2,HelpMessage="The full path of the log file that the entry will written to")]
+        [Parameter(Mandatory=$false,Position=2,HelpMessage="The full path of the log file that the entry will written to")]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({(Test-Path -Path $_.Substring(0, $_.LastIndexOf("\")) -PathType Container) -and (Test-Path -Path $_ -PathType Leaf -IsValid)})]
         [String]$Path = $Script:LogPath,
