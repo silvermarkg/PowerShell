@@ -1,8 +1,8 @@
 <#
   .NOTES
   Author: Mark Goodman
-  Version 1.00
-  Date: 23-Mar-2022
+  Version 1.0.1
+  Date: 05-Jul-2022
 
   Release Notes
   -------------
@@ -10,7 +10,8 @@
 
   Update History
   --------------
-  1.00 (23-Mar-2022) - Initial script
+  1.0.1 | 05-Jul-2022 | Updated help info
+  1.0.0 | 23-Mar-2022 | Initial script
 
   License
   -------
@@ -34,15 +35,19 @@
   .SYNOPSIS
   Extracts icon from executable and saves as PNG file
 
-  .PARAMETER ParamName
-  <parameter description>
+  .PARAMETER Path
+  The path to the executable to extract the icon resource from
+	
+  .PARAMETER Destination
+  The path to save the .png file to. Only specify the destination folder. Defaults to current location.
 	
   .EXAMPLE
-  <ScriptName>.ps1
+  Set-Location -Path C:\
+  Extract-Icon.ps1 -Path C:\MyApp.exe
 	
 	Description
 	-----------
-	<example description>
+	Extracts the icon from C:\MyApp.exe and saves as C:\MyApp.png
 #>
 
 #region - Parameters
@@ -75,6 +80,7 @@ Set-StrictMode -Version Latest
 #-- Script variables --#
 # PS v2+ = $scriptDir = split-path -path $MyInvocation.MyCommand.Path -parent
 # PS v4+ = Use $PSScriptRoot for script path
+[System.Reflection.Assembly]::LoadWithPartialName("System.Drawing") | Out-Null
 
 #-- Main code --#
 Write-Verbose -Message "Extracting icon from $($Path)"
