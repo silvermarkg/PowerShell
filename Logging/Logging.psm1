@@ -1,14 +1,15 @@
 <#
     Script:  Logging.psm1
-    Date:    21-Jun-2022
+    Date:    27-Jul-2022
     Author:  Mark Goodman
-    Version: 1.20
+    Version: 1.21
 
     This script is provided "AS IS" with no warranties, confers no rights and 
     is not supported by the authors.
 
     Update history
     --------------
+    1.21 - Fixed issue with Write-LogEntry not using Path parameter
     1.20 - Fixed issues when not specifying the Path parameter
     1.10 - Added additional options and validation
     1.00 - Initial version
@@ -42,13 +43,25 @@
 
     .EXAMPLE
     Import-Module -Name Logging.ps1
-    Write-LogEntry -Message "Script started" -Path "C:\Windows\Temp\MyScript.log"
-    Write-LogEntry -Message "Script ended"
+    $Path = "C:\Windows\Temp\MyScript.log"
+    Write-LogEntry -Message "Script started" -Path $Path
 
     Description
     -----------
-    The first line imports the module. The next line wrties an entry (in basic format) to the C:\Windows\Temp\MyScript.log file.
-    The third line writes an entry to the log file. No Path parameter is required as the previous call has saved the log file path.
+    The first line imports the module.
+    The second line sets the Path variable.
+    The thrid line writes to the log file by specifing the Path parameter
+
+    .EXAMPLE
+    Import-Module -Name Logging.ps1
+    $LogPath = "C:\Windows\Temp\MyScript.log"
+    Write-LogEntry -Message "Script started"
+
+    Description
+    -----------
+    The first line imports the module.
+    The second line sets the LogPath variable.
+    The thrid line writes to the log file. No Path parameter is required as the $Script:LogPath variable value will be used.
 #>
 
 #-- Script Environment --#
@@ -101,7 +114,7 @@ function Write-LogEntry {
 
 		.DESCRIPTION
 		Writes an infomational, warning or error meesage to a log file. Log entries can be written in basic (default) or cmtrace format.
-        When using basic format, you can choose to include a date/time stamp if required.
+    When using basic format, you can choose to include a date/time stamp if required.
 
 		.PARAMETER Message
 		THe message to write to the log file
@@ -109,25 +122,34 @@ function Write-LogEntry {
 		.PARAMETER Severity
 		The severity of message to write to the log file. This can be Information, Warning or Error. Defaults to Information.
 
-		.PARAMETER LogPath
+		.PARAMETER Path
 		The path to the log file. Recommended to use Set-LogPath to set the path.
 
 		#.PARAMETER AddDateTime (currently not supported)
 		Adds a datetime stamp to each entry in the format YYYY-MM-DD HH:mm:ss.fff
 
 		.EXAMPLE
-        Write-LogEntry -Message "Searching for file" -Severity Information -LogPath C:\MyLog.log 
+    Write-LogEntry -Message "Searching for file" -Severity Information -Path C:\MyLog.log 
 
-        Description
-        -----------
-        Writes a basic log entry
+    Description
+    -----------
+    Writes a basic log entry
 
-   		.EXAMPLE
-        Write-LogEntry -Message "Searching for file" -Severity Warning -LogPath C:\MyLog.log -CMTraceFormat 
+    .EXAMPLE
+    Write-LogEntry -Message "Searching for file" -Severity Warning -LogPath C:\MyLog.log -CMTraceFormat 
 
-        Description
-        -----------
-        Writes a CMTrace format log entry
+    Description
+    -----------
+    Writes a CMTrace format log entry
+
+		.EXAMPLE
+    $Script:LogPath = "C:\MyLog.log"
+    Write-LogEntry -Message "Searching for file" -Severity Information 
+
+    Description
+    -----------
+    First line creates the script variable LogPath
+    Second line writes to the log file.
     #>
 
     [CmdletBinding()]
@@ -154,11 +176,6 @@ function Write-LogEntry {
         [Switch]$AddDateTime
         #>
     )
-
-    # Set log path
-    if ($Script:LogPath -ne $Path) {
-        Set-LogPath -Path $Path
-    }
 
     # Construct date and time for log entry (based on currnent culture)
     $Date = Get-Date -Format (Get-Culture).DateTimeFormat.ShortDatePattern
@@ -200,10 +217,10 @@ function Write-LogEntry {
 
     # Add value to log file
     try {
-        Out-File -InputObject $LogText -Append -NoClobber -Encoding Default -FilePath $Script:LogPath -ErrorAction Stop
+        Out-File -InputObject $LogText -Append -NoClobber -Encoding Default -FilePath $Path -ErrorAction Stop
     }
     catch [System.Exception] {
-        Write-Warning -Message "Unable to append log entry to $($Script:LogPath) file. Error message: $($_.Exception.Message)"
+        Write-Warning -Message "Unable to append log entry to $($Path) file. Error message: $($_.Exception.Message)"
     }
 }
 
