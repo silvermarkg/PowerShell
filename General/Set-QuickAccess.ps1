@@ -146,7 +146,7 @@ https://gallery.technet.microsoft.com/Set-QuickAccess-117e9a89
       return
     }
     Else {
-      $QuickAccess.Namespace($Path).Self.InvokeVerb(“pintohome”)
+      $QuickAccess.Namespace($Path).Self.InvokeVerb("pintohome")
     }
   }
   ElseIf ($Action -eq "Unpin") {
